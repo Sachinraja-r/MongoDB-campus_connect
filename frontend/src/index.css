@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 selection:bg-kiot-maroon selection:text-white;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glass & Card effects */
+.kiot-card {
+  @apply bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+}
+
+.kiot-gradient {
+  background: linear-gradient(135deg, #800000 0%, #5b0000 100%);
+}
+
+.kiot-gradient-navy {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.kiot-gradient-accent {
+  background: linear-gradient(135deg, #800000 0%, #1e3a8a 100%);
+}
+
+/* Pulse animation for active IN status */
+@keyframes presence-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.pulse-green {
+  animation: presence-pulse 2s infinite;
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  z-index: 10;
+}
