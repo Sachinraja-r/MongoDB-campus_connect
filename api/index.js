@@ -7,6 +7,11 @@ let isSeeded = false;
 
 export default async function handler(req, res) {
   try {
+    // Normalize URL path so both /api/path and rewritten /path match Express routes
+    if (!req.url.startsWith('/api')) {
+      req.url = `/api${req.url}`;
+    }
+
     await connectDB();
 
     if (!isSeeded) {
