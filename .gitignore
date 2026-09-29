@@ -38,3 +38,5 @@ lerna-debug.log*
 # Temporary uploads (keep structure)
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+.vercel

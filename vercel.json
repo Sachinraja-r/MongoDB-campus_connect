@@ -1,15 +1,19 @@
 {
   "version": 2,
-  "services": {
-    "frontend": {
-      "root": "frontend",
-      "routePrefix": "/",
-      "framework": "vite"
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
-    "backend": {
-      "root": "backend",
-      "entrypoint": "src/server.js",
-      "routePrefix": "/api"
+    {
+      "source": "/api",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
     }
-  }
+  ]
 }
