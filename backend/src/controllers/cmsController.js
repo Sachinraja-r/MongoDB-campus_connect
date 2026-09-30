@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import { AuthorizedUser } from '../models/AuthorizedUser.js';
 import { Club } from '../models/Club.js';
@@ -103,9 +104,10 @@ export const getAuthorizedUsers = async (req, res, next) => {
 
 export const createAuthorizedUser = async (req, res, next) => {
   try {
-    const { name, email, registerNumber, department, year, section, role, status, phone, notes } = req.body;
+    const { name, email, registerNumber, department, year, section, role, status, phone, notes, password } = req.body;
 
-    const existing = await AuthorizedUser.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await AuthorizedUser.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(400).json({
         success: false,
@@ -113,10 +115,14 @@ export const createAuthorizedUser = async (req, res, next) => {
       });
     }
 
+    const regNo = registerNumber ? registerNumber.toUpperCase().trim() : undefined;
+    const initialPassword = password && password.trim() ? password.trim() : 'kiot@2026';
+    const passwordHash = await bcrypt.hash(initialPassword, 10);
+
     const authorizedUser = await AuthorizedUser.create({
       name,
-      email: email.toLowerCase().trim(),
-      registerNumber: registerNumber ? registerNumber.toUpperCase().trim() : undefined,
+      email: normalizedEmail,
+      registerNumber: regNo,
       department: department || 'CSE',
       year: year || 1,
       section: section || 'A',
@@ -126,12 +132,77 @@ export const createAuthorizedUser = async (req, res, next) => {
       notes: notes || '',
     });
 
-    await logAudit(req, 'AUTHORIZED_USER_CREATED', 'AuthorizedUser', authorizedUser._id, { email });
+    // Also create/sync the corresponding User document with passwordHash
+    await User.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        name: authorizedUser.name,
+        email: authorizedUser.email,
+        registerNumber: authorizedUser.registerNumber,
+        department: authorizedUser.department,
+        year: authorizedUser.year,
+        section: authorizedUser.section,
+        role: authorizedUser.role,
+        status: authorizedUser.status,
+        phone: authorizedUser.phone,
+        passwordHash,
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(authorizedUser.name)}`,
+      },
+      { upsert: true, new: true }
+    );
+
+    await logAudit(req, 'AUTHORIZED_USER_CREATED', 'AuthorizedUser', authorizedUser._id, { email: normalizedEmail });
 
     res.status(201).json({
       success: true,
-      message: `Authorized user ${authorizedUser.name} created.`,
+      message: `Authorized user ${authorizedUser.name} created with login password initialized.`,
       user: authorizedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetUserPassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    const passwordToSet = newPassword && newPassword.trim() ? newPassword.trim() : 'kiot@2026';
+    if (passwordToSet.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 4 characters long.',
+      });
+    }
+
+    const authorized = await AuthorizedUser.findById(id);
+    if (!authorized) {
+      return res.status(404).json({ success: false, message: 'Authorized user not found.' });
+    }
+
+    const passwordHash = await bcrypt.hash(passwordToSet, 10);
+
+    // Update or create User profile with new passwordHash
+    await User.findOneAndUpdate(
+      { email: authorized.email },
+      {
+        name: authorized.name,
+        email: authorized.email,
+        registerNumber: authorized.registerNumber,
+        role: authorized.role,
+        department: authorized.department,
+        status: authorized.status,
+        passwordHash,
+      },
+      { upsert: true, new: true }
+    );
+
+    await logAudit(req, 'USER_PASSWORD_RESET', 'User', id, { email: authorized.email });
+
+    res.json({
+      success: true,
+      message: `Password for ${authorized.name} (${authorized.email}) has been successfully updated.`,
     });
   } catch (error) {
     next(error);

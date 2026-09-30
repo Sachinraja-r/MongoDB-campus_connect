@@ -3,6 +3,7 @@ import {
   getCmsStats,
   getAuthorizedUsers,
   createAuthorizedUser,
+  resetUserPassword,
   updateAuthorizedUser,
   deleteAuthorizedUser,
   getAllUsers,
@@ -30,6 +31,7 @@ router.get('/stats', getCmsStats);
 // Authorized User Management
 router.get('/authorized-users', getAuthorizedUsers);
 router.post('/authorized-users', createAuthorizedUser);
+router.put('/authorized-users/:id/reset-password', resetUserPassword);
 router.put('/authorized-users/:id', updateAuthorizedUser);
 router.delete('/authorized-users/:id', deleteAuthorizedUser);
 

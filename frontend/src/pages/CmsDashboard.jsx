@@ -20,6 +20,7 @@ import {
   Building2,
   Search,
   Lock,
+  KeyRound,
 } from 'lucide-react';
 
 export const CmsDashboard = () => {
@@ -34,6 +35,9 @@ export const CmsDashboard = () => {
   const [authorizedUsers, setAuthorizedUsers] = useState([]);
   const [authUserSearch, setAuthUserSearch] = useState('');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [resetModalUser, setResetModalUser] = useState(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -43,6 +47,7 @@ export const CmsDashboard = () => {
     section: 'A',
     role: 'student',
     status: 'active',
+    password: '',
   });
 
   // Mentor Assignment State
@@ -205,11 +210,35 @@ export const CmsDashboard = () => {
           section: 'A',
           role: 'student',
           status: 'active',
+          password: '',
         });
         await fetchAuthorizedUsers();
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to add user.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Reset User Password
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetModalUser) return;
+    setActionLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await api.put(`/cms/authorized-users/${resetModalUser._id}/reset-password`, {
+        newPassword: newPasswordInput || 'kiot@2026',
+      });
+      if (res.data.success) {
+        setFeedbackMsg(res.data.message);
+        setShowResetPasswordModal(false);
+        setResetModalUser(null);
+        setNewPasswordInput('');
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to reset password.');
     } finally {
       setActionLoading(false);
     }
@@ -577,16 +606,30 @@ export const CmsDashboard = () => {
                           </span>
                         </td>
                         <td className="p-3 text-right">
-                          <button
-                            onClick={async () => {
-                              const newStatus = u.status === 'active' ? 'disabled' : 'active';
-                              await api.put(`/cms/authorized-users/${u._id}`, { status: newStatus });
-                              await fetchAuthorizedUsers();
-                            }}
-                            className="text-[11px] font-bold text-kiot-maroon hover:underline"
-                          >
-                            Toggle {u.status === 'active' ? 'Disable' : 'Activate'}
-                          </button>
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => {
+                                setResetModalUser(u);
+                                setNewPasswordInput('');
+                                setShowResetPasswordModal(true);
+                              }}
+                              className="text-[11px] font-bold text-amber-750 hover:text-amber-900 text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-all"
+                              title="Reset login credentials"
+                            >
+                              <KeyRound className="w-3 h-3 text-amber-600" />
+                              <span>Reset Pass</span>
+                            </button>
+                            <button
+                              onClick={async () => {
+                                const newStatus = u.status === 'active' ? 'disabled' : 'active';
+                                await api.put(`/cms/authorized-users/${u._id}`, { status: newStatus });
+                                await fetchAuthorizedUsers();
+                              }}
+                              className="text-[11px] font-bold text-kiot-maroon hover:underline"
+                            >
+                              Toggle {u.status === 'active' ? 'Disable' : 'Activate'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1050,6 +1093,19 @@ export const CmsDashboard = () => {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Initial Login Password <span className="text-slate-400 font-normal">(Default: kiot@2026)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Leave blank for default: kiot@2026"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-kiot-maroon outline-none font-mono"
+                />
+              </div>
+
               <div className="flex justify-end gap-2 pt-3">
                 <button
                   type="button"
@@ -1064,6 +1120,72 @@ export const CmsDashboard = () => {
                   className="px-5 py-2 text-xs font-bold bg-kiot-maroon text-white rounded-xl hover:bg-kiot-crimson shadow-md"
                 >
                   Authorize User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {showResetPasswordModal && resetModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-slate-900">
+                  Reset User Password
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Manage login credentials for <strong className="text-slate-800">{resetModalUser.name}</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-2xl text-xs space-y-1 text-slate-600 font-mono">
+              <p>Username / Email: <span className="text-slate-900 font-bold">{resetModalUser.email}</span></p>
+              <p>Roll Number: <span className="text-slate-900 font-bold">{resetModalUser.registerNumber || 'N/A'}</span></p>
+              <p>Institutional Role: <span className="uppercase text-slate-900 font-bold">{resetModalUser.role}</span></p>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter new password (or leave blank for kiot@2026)"
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-kiot-maroon outline-none font-mono"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Leave blank to reset to the default institution password (<code>kiot@2026</code>).
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResetPasswordModal(false);
+                    setResetModalUser(null);
+                    setNewPasswordInput('');
+                  }}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading}
+                  className="px-5 py-2 text-xs font-bold bg-kiot-maroon text-white rounded-xl hover:bg-kiot-crimson shadow-md flex items-center gap-1.5"
+                >
+                  {actionLoading ? 'Updating…' : 'Save Password'}
                 </button>
               </div>
             </form>
