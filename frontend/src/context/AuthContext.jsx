@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../firebase';
 import api from '../services/api';
 
 const AuthContext = createContext();
@@ -34,20 +36,39 @@ export const AuthProvider = ({ children }) => {
     fetchCurrentUser();
   }, []);
 
-  // Google OAuth Login
-  const loginWithGoogle = async (credential) => {
+  // Firebase Google OAuth Login — opens popup, sends Firebase ID token to backend
+  const loginWithGoogle = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post('/auth/google-login', { credential });
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      // Get a fresh Firebase ID token (JWT) to send to our backend for verification
+      const idToken = await firebaseUser.getIdToken(/* forceRefresh */ true);
+
+      const res = await api.post('/auth/google-login', {
+        credential: idToken,
+        firebaseUid: firebaseUser.uid,
+        name: firebaseUser.displayName,
+        avatar: firebaseUser.photoURL,
+      });
+
       if (res.data.success) {
         localStorage.setItem('campusconnect_token', res.data.token);
         localStorage.setItem('campusconnect_user', JSON.stringify(res.data.user));
         await fetchCurrentUser();
         return { success: true };
+      } else {
+        const msg = res.data.message || 'Login failed.';
+        setError(msg);
+        return { success: false, message: msg };
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please verify credentials.';
+      // Firebase popup closed / cancelled
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        return { success: false, message: 'Sign-in cancelled.' };
+      }
+      const msg = err.response?.data?.message || err.message || 'Google sign-in failed.';
       setError(msg);
       return { success: false, message: msg };
     } finally {
@@ -55,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Demo Login (One-click persona test switcher)
+  // Demo Login (One-click persona test switcher — bypasses Firebase for evaluation)
   const loginWithDemo = async (email) => {
     setLoading(true);
     setError(null);
@@ -67,6 +88,9 @@ export const AuthProvider = ({ children }) => {
         await fetchCurrentUser();
         return { success: true };
       }
+      const msg = res.data.message || 'Demo login failed.';
+      setError(msg);
+      return { success: false, message: msg };
     } catch (err) {
       const msg = err.response?.data?.message || 'Demo login failed.';
       setError(msg);
@@ -79,6 +103,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('campusconnect_token');
     localStorage.removeItem('campusconnect_user');
+    // Also sign out from Firebase
+    auth.signOut().catch(() => {});
     setUser(null);
     window.location.href = '/login';
   };

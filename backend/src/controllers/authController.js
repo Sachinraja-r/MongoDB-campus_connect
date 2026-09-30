@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
+import { createPublicKey } from 'crypto';
 import { User } from '../models/User.js';
 import { AuthorizedUser } from '../models/AuthorizedUser.js';
 import { SystemSettings } from '../models/SystemSettings.js';
@@ -8,7 +8,47 @@ import { Notification } from '../models/Notification.js';
 import { Friendship } from '../models/Friendship.js';
 import { logAudit } from '../middleware/audit.js';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'campusconnect-kiot-client-id');
+// Cache Firebase public keys for 60 minutes to avoid hammering Google's endpoint
+let _fbKeysCache = null;
+let _fbKeysCacheExpiry = 0;
+
+const getFirebasePublicKeys = async () => {
+  const now = Date.now();
+  if (_fbKeysCache && now < _fbKeysCacheExpiry) return _fbKeysCache;
+  const res = await fetch(
+    'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
+  );
+  const data = await res.json();
+  _fbKeysCache = data;
+  // Cache for 50 minutes (keys rotate hourly)
+  _fbKeysCacheExpiry = now + 50 * 60 * 1000;
+  return data;
+};
+
+const verifyFirebaseToken = async (idToken) => {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  if (!projectId) throw new Error('FIREBASE_PROJECT_ID env var is not set.');
+
+  // Decode header to find which key ID was used
+  const headerB64 = idToken.split('.')[0];
+  const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString('utf8'));
+  const kid = header.kid;
+
+  const keys = await getFirebasePublicKeys();
+  const certPem = keys[kid];
+  if (!certPem) throw new Error('Firebase public key not found for kid: ' + kid);
+
+  // Convert PEM certificate to a public key for verification
+  const publicKey = createPublicKey(certPem);
+
+  const decoded = jwt.verify(idToken, publicKey, {
+    algorithms: ['RS256'],
+    audience: projectId,
+    issuer: `https://securetoken.google.com/${projectId}`,
+  });
+  return decoded;
+};
+
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -49,21 +89,23 @@ export const loginWithGoogle = async (req, res, next) => {
         });
       }
 
-      // Verify Google ID Token server-side
+      // Verify Firebase ID Token server-side using Firebase's public JWKS
       try {
-        const ticket = await googleClient.verifyIdToken({
-          idToken: credential,
-          audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-        email = payload.email.toLowerCase().trim();
-        name = payload.name;
-        avatar = payload.picture;
+        const decoded = await verifyFirebaseToken(credential);
+        email = (decoded.email || '').toLowerCase().trim();
+        name = decoded.name;
+        avatar = decoded.picture;
+
+        if (!email) {
+          return res.status(401).json({
+            success: false,
+            message: 'Could not extract email from Firebase token. Ensure the user granted email permission.',
+          });
+        }
       } catch (err) {
-        // If client ID is placeholder, handle informative verification error
         return res.status(401).json({
           success: false,
-          message: 'Failed to verify Google ID token. Please use the Quick Demo login or configure GOOGLE_CLIENT_ID.',
+          message: 'Firebase token verification failed: ' + err.message,
         });
       }
     }
