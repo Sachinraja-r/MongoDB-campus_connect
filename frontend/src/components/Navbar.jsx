@@ -37,8 +37,8 @@ export const Navbar = ({ onOpenQrScan, onToggleMobileSidebar }) => {
 
             <Link to={user ? '/dashboard' : '/'} className="flex items-center gap-3 group">
               {/* KIOT Emblem Icon */}
-              <div className="w-10 h-10 rounded-xl bg-kiot-maroon flex items-center justify-center text-white font-bold shadow-md shadow-kiot-maroon/20 group-hover:scale-105 transition-transform">
-                <span className="font-display tracking-tight text-kiot-gold font-extrabold text-sm">KIOT</span>
+              <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shadow-sm border border-slate-200 group-hover:scale-105 group-hover:border-kiot-maroon/30 transition-all shrink-0">
+                <img src="/kiot-logo.png" alt="KIOT Logo" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-extrabold text-lg tracking-tight text-slate-900 flex items-center gap-1.5">

@@ -96,12 +96,12 @@ export const LoginPage = () => {
         <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-kiot-darkmaroon p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10 space-y-4">
             {/* KIOT Crest */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-kiot-maroon flex items-center justify-center text-kiot-gold font-bold text-base shadow-lg shadow-kiot-maroon/30">
-                KIOT
+            <div className="flex items-center gap-3.5">
+              <div className="w-14 h-14 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-xl shadow-black/40 border border-white/20 shrink-0">
+                <img src="/kiot-logo.png" alt="KIOT Institutional Crest" className="w-full h-full object-contain" />
               </div>
               <div>
-                <h2 className="font-display font-extrabold text-xl text-white">CampusConnect</h2>
+                <h2 className="font-display font-extrabold text-xl text-white tracking-tight">CampusConnect</h2>
                 <p className="text-[11px] text-kiot-gold font-semibold uppercase tracking-wider">
                   Knowledge Institute of Technology
                 </p>

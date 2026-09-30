@@ -381,17 +381,22 @@ export const CmsDashboard = () => {
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
       {/* CMS Privileged Header */}
       <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-slate-950 via-slate-900 to-kiot-darkmaroon text-white border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-kiot-gold text-slate-950 shadow-sm">
-            <Lock className="w-3 h-3" />
-            <span>Privileged System Control Center</span>
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-xl border border-white/20 shrink-0">
+            <img src="/kiot-logo.png" alt="KIOT Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            CampusConnect System Architecture CMS
-          </h1>
-          <p className="text-xs text-slate-300">
-            Administrative governance layer for Knowledge Institute of Technology.
-          </p>
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-kiot-gold text-slate-950 shadow-sm">
+              <Lock className="w-3 h-3" />
+              <span>Privileged System Control Center</span>
+            </div>
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              CampusConnect System Architecture CMS
+            </h1>
+            <p className="text-xs text-slate-300">
+              Administrative governance layer for Knowledge Institute of Technology.
+            </p>
+          </div>
         </div>
 
         {/* 1-Click Demo Seed / Reset Action */}

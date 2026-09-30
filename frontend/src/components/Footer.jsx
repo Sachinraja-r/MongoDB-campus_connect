@@ -10,8 +10,8 @@ export const Footer = () => {
           {/* Col 1: Identity */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-kiot-maroon flex items-center justify-center text-kiot-gold font-bold text-xs">
-                KIOT
+              <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-sm shrink-0">
+                <img src="/kiot-logo.png" alt="KIOT Logo" className="w-full h-full object-contain" />
               </div>
               <span className="font-display font-extrabold text-base text-white">
                 Campus<span className="text-kiot-gold">Connect</span>
