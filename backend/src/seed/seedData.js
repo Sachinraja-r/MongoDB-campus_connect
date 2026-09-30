@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import { AuthorizedUser } from '../models/AuthorizedUser.js';
 import { Club } from '../models/Club.js';
@@ -190,7 +191,10 @@ export const seedDatabase = async () => {
 
   await AuthorizedUser.insertMany(authorizedUsersData);
 
-  // 4. Create User documents
+  // 4. Create User documents (all demo users get default password: kiot@2026)
+  const DEFAULT_PASSWORD = 'kiot@2026';
+  const defaultPasswordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+
   const users = [];
   for (const item of authorizedUsersData) {
     const avatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(item.name)}`;
@@ -205,6 +209,7 @@ export const seedDatabase = async () => {
       status: item.status,
       phone: item.phone,
       avatar,
+      passwordHash: defaultPasswordHash,
       bio:
         item.role === 'student'
           ? `B.E. ${item.department} Student at Knowledge Institute of Technology. Interested in web architecture, algorithmic coding, and open-source campus initiatives.`

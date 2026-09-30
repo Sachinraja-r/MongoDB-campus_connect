@@ -96,6 +96,13 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Password for credential-based login (optional — users can also use Google OAuth)
+    passwordHash: {
+      type: String,
+      default: null,
+      select: false, // never returned in queries by default
+    },
+
   },
   {
     timestamps: true,

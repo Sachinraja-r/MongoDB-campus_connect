@@ -10,17 +10,24 @@ import {
   UserCheck,
   Award,
   Lock,
-  Building2,
+  Eye,
+  EyeOff,
+  KeyRound,
+  User,
 } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { user, loginWithGoogle, loginWithDemo, loading: authLoading, error: authError } = useAuth();
+  const { user, loginWithGoogle, loginWithDemo, loginWithPassword, loading: authLoading, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [customEmail, setCustomEmail] = useState('');
+
+  // Credential form state
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -55,6 +62,21 @@ export const LoginPage = () => {
     }
   };
 
+  const handlePasswordLogin = async (e) => {
+    e.preventDefault();
+    if (!username.trim() || !password.trim()) {
+      setErrorMessage('Please enter your username and password.');
+      return;
+    }
+    setLoading(true);
+    setErrorMessage('');
+    const result = await loginWithPassword(username.trim(), password);
+    setLoading(false);
+    if (!result.success) {
+      setErrorMessage(result.message);
+    }
+  };
+
   const handleDemoSignIn = async (email) => {
     setLoading(true);
     setErrorMessage('');
@@ -65,16 +87,12 @@ export const LoginPage = () => {
     }
   };
 
-  const handleCustomEmailTest = (e) => {
-    e.preventDefault();
-    if (!customEmail) return;
-    handleDemoSignIn(customEmail);
-  };
+  const isLoading = loading || authLoading;
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2">
-        {/* Left Col: Institutional Branding & Welcome */}
+        {/* Left Col: Institutional Branding */}
         <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-kiot-darkmaroon p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10 space-y-4">
             {/* KIOT Crest */}
@@ -101,7 +119,7 @@ export const LoginPage = () => {
                 Your opportunities.
               </h3>
               <p className="text-xs text-slate-300 leading-relaxed pt-1">
-                Access is restricted to authorized KIOT institutional accounts (@kiot.ac.in). Unregistered accounts or non-institutional emails are rejected at the gateway.
+                Access is restricted to authorized KIOT institutional accounts (@kiot.ac.in). Use your credentials or sign in with Google Workspace.
               </p>
             </div>
           </div>
@@ -118,13 +136,13 @@ export const LoginPage = () => {
           <div className="absolute right-0 bottom-0 w-64 h-64 bg-kiot-gold/10 rounded-full blur-3xl pointer-events-none" />
         </div>
 
-        {/* Right Col: Sign In Methods & Rapid Persona Switcher */}
-        <div className="p-8 sm:p-10 space-y-6 flex flex-col justify-between">
+        {/* Right Col: Sign In Methods */}
+        <div className="p-8 sm:p-10 space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
             <div>
               <h3 className="font-display font-bold text-xl text-slate-900">Sign in to your account</h3>
-              <p className="text-xs text-slate-600 mt-1">
-                Use your official KIOT Google Workspace credentials.
+              <p className="text-xs text-slate-500 mt-1">
+                Use your KIOT credentials or Google Workspace account.
               </p>
             </div>
 
@@ -139,165 +157,190 @@ export const LoginPage = () => {
               </div>
             )}
 
-            {/* Firebase Google Sign-In Button */}
-            <div className="space-y-2">
+            {/* ── Username + Password Form ── */}
+            <form onSubmit={handlePasswordLogin} className="space-y-3">
+              {/* Username */}
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                  Username
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Email or Roll Number (e.g. 2K24CSE167)"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-kiot-maroon/30 focus:border-kiot-maroon outline-none transition-all disabled:opacity-60 placeholder:text-slate-400"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                  Password
+                </label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-kiot-maroon/30 focus:border-kiot-maroon outline-none transition-all disabled:opacity-60 placeholder:text-slate-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 flex items-center justify-between pt-0.5">
+                  <span>Demo / Default password: <code className="font-mono font-semibold text-kiot-maroon bg-slate-100 px-1 py-0.5 rounded">kiot@2026</code></span>
+                </p>
+              </div>
+
               <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={loading || authLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 shadow-sm transition-all font-medium text-slate-700 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                type="submit"
+                disabled={isLoading || !username || !password}
+                className="w-full py-2.5 rounded-xl bg-kiot-maroon hover:bg-kiot-darkmaroon text-white font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-kiot-maroon/20"
               >
-                {/* Google logo SVG */}
-                <svg width="18" height="18" viewBox="0 0 18 18">
-                  <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-                  <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/>
-                  <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/>
-                  <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3z"/>
-                </svg>
-                {loading || authLoading ? 'Signing in…' : 'Sign in with Google'}
+                {isLoading ? 'Signing in…' : 'Sign In'}
               </button>
-              <p className="text-[11px] text-center text-slate-500">
-                Enforcing official{' '}
-                <span className="font-mono text-kiot-maroon font-bold">@kiot.ac.in</span>{' '}
-                institutional domain
-              </p>
-            </div>
+            </form>
 
             {/* Divider */}
             <div className="relative flex py-1 items-center">
               <div className="flex-grow border-t border-slate-200" />
-              <span className="flex-shrink mx-3 text-[11px] font-bold uppercase tracking-wider text-slate-600 bg-white px-2">
+              <span className="flex-shrink mx-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-white px-2">
+                or
+              </span>
+              <div className="flex-grow border-t border-slate-200" />
+            </div>
+
+            {/* Firebase Google Sign-In Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 shadow-sm transition-all font-medium text-slate-700 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18">
+                <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+                <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/>
+                <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/>
+                <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3z"/>
+              </svg>
+              {isLoading ? 'Signing in…' : 'Sign in with Google'}
+            </button>
+            <p className="text-[11px] text-center text-slate-400">
+              Enforcing official{' '}
+              <span className="font-mono text-kiot-maroon font-bold">@kiot.ac.in</span>{' '}
+              institutional domain
+            </p>
+
+            {/* Divider */}
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-slate-200" />
+              <span className="flex-shrink mx-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-white px-2">
                 Rapid Persona Switcher
               </span>
               <div className="flex-grow border-t border-slate-200" />
             </div>
 
-            {/* 1-Click Role Switcher for Hackathon Evaluation & Testing */}
-            <div className="space-y-2">
-              <p className="text-[11px] text-slate-600 font-medium">
-                Select a pre-seeded authorized role to test the full-stack system immediately:
+            {/* 1-Click Role Switcher for Hackathon Evaluation */}
+            <div className="space-y-1.5">
+              <p className="text-[11px] text-slate-500">
+                Select a pre-seeded role to instantly test the full-stack system:
               </p>
 
-              <div className="grid grid-cols-1 gap-2">
-                {/* 1. Student Persona: Sachin V */}
+              <div className="grid grid-cols-1 gap-1.5">
+                {/* Student */}
                 <button
                   type="button"
-                  disabled={loading}
+                  disabled={isLoading}
                   onClick={() => handleDemoSignIn('sachin.24cse167@kiot.ac.in')}
                   className="p-2.5 rounded-xl border border-slate-200 hover:border-kiot-maroon hover:bg-kiot-maroon/5 flex items-center justify-between text-left transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                       <GraduationCap className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-kiot-maroon">
-                        Sachin V (Student)
-                      </p>
-                      <p className="text-[10px] text-slate-500 font-mono">
-                        2K24CSE167 • Dept of CSE • Year 2
-                      </p>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-kiot-maroon">Sachin V (Student)</p>
+                      <p className="text-[10px] text-slate-500 font-mono">2K24CSE167 • Dept of CSE • Year 2</p>
                     </div>
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-kiot-maroon group-hover:translate-x-0.5 transition-all" />
                 </button>
 
-                {/* 2. Mentor Persona: Dr. K. Rajesh */}
+                {/* Mentor */}
                 <button
                   type="button"
-                  disabled={loading}
+                  disabled={isLoading}
                   onClick={() => handleDemoSignIn('mentor.rajesh@kiot.ac.in')}
                   className="p-2.5 rounded-xl border border-slate-200 hover:border-emerald-600 hover:bg-emerald-50/50 flex items-center justify-between text-left transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
                       <UserCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-800">
-                        Dr. K. Rajesh (Senior Mentor)
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        Assigned Cohort: 5 Mentees (incl. 2K24CSE167)
-                      </p>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-800">Dr. K. Rajesh (Senior Mentor)</p>
+                      <p className="text-[10px] text-slate-500">Assigned Cohort: 5 Mentees</p>
                     </div>
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all" />
                 </button>
 
-                {/* 3. Club Leader Persona: Priya Dharshini S */}
+                {/* Club Leader */}
                 <button
                   type="button"
-                  disabled={loading}
+                  disabled={isLoading}
                   onClick={() => handleDemoSignIn('priya.club@kiot.ac.in')}
                   className="p-2.5 rounded-xl border border-slate-200 hover:border-amber-600 hover:bg-amber-50/50 flex items-center justify-between text-left transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
                       <Award className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-amber-800">
-                        Priya Dharshini S (Club Leader)
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        President — KIOT Coding Club (KCC)
-                      </p>
+                      <p className="text-xs font-bold text-slate-900 group-hover:text-amber-800">Priya Dharshini S (Club Leader)</p>
+                      <p className="text-[10px] text-slate-500">President — KIOT Coding Club (KCC)</p>
                     </div>
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all" />
                 </button>
 
-                {/* 4. Super Admin / Developer Persona: Dr. P. Rajendran */}
+                {/* Admin */}
                 <button
                   type="button"
-                  disabled={loading}
+                  disabled={isLoading}
                   onClick={() => handleDemoSignIn('admin@kiot.ac.in')}
                   className="p-2.5 rounded-xl border border-slate-200 hover:border-slate-800 hover:bg-slate-100 flex items-center justify-between text-left transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-kiot-gold flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-kiot-gold flex items-center justify-center">
                       <Lock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900">
-                        Dr. P. Rajendran (Developer / Admin)
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        Full Developer CMS System Control Center
-                      </p>
+                      <p className="text-xs font-bold text-slate-900">Dr. P. Rajendran (Developer / Admin)</p>
+                      <p className="text-[10px] text-slate-500">Full Developer CMS System Control Center</p>
                     </div>
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all" />
                 </button>
               </div>
             </div>
-
-            {/* Test Security Rejection Input */}
-            <form onSubmit={handleCustomEmailTest} className="pt-2">
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                Security Test: Try Any Other Email (Verify Authorization Rejection)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="e.g. unknown@gmail.com or test@kiot.ac.in"
-                  value={customEmail}
-                  onChange={(e) => setCustomEmail(e.target.value)}
-                  className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-kiot-maroon outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !customEmail}
-                  className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold disabled:opacity-50 transition-colors"
-                >
-                  Test
-                </button>
-              </div>
-            </form>
           </div>
 
-          <p className="text-[10px] text-center text-slate-400">
+          <p className="text-[10px] text-center text-slate-400 pt-2">
             Protected by KIOT Institutional Identity Gateway • All actions audited.
           </p>
         </div>

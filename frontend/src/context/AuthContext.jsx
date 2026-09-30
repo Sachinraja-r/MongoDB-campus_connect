@@ -100,6 +100,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Password-based login — email or roll number + password
+  const loginWithPassword = async (username, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.post('/auth/password-login', { username, password });
+      if (res.data.success) {
+        localStorage.setItem('campusconnect_token', res.data.token);
+        localStorage.setItem('campusconnect_user', JSON.stringify(res.data.user));
+        await fetchCurrentUser();
+        return { success: true };
+      }
+      const msg = res.data.message || 'Login failed.';
+      setError(msg);
+      return { success: false, message: msg };
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Login failed. Check credentials.';
+      setError(msg);
+      return { success: false, message: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('campusconnect_token');
     localStorage.removeItem('campusconnect_user');
@@ -126,6 +150,7 @@ export const AuthProvider = ({ children }) => {
         error,
         loginWithGoogle,
         loginWithDemo,
+        loginWithPassword,
         logout,
         refreshUser: fetchCurrentUser,
         updatePresence,
