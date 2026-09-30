@@ -4,12 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   ShieldCheck,
   AlertCircle,
-  GraduationCap,
   Sparkles,
-  ArrowRight,
-  UserCheck,
-  Award,
-  Lock,
   Eye,
   EyeOff,
   KeyRound,
@@ -17,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export const LoginPage = () => {
-  const { user, loginWithGoogle, loginWithDemo, loginWithPassword, loading: authLoading, error: authError } = useAuth();
+  const { user, loginWithGoogle, loginWithPassword, loading: authLoading, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -74,16 +69,6 @@ export const LoginPage = () => {
     setLoading(false);
     if (!result.success) {
       setErrorMessage(result.message);
-    }
-  };
-
-  const handleDemoSignIn = async (email) => {
-    setLoading(true);
-    setErrorMessage('');
-    const res = await loginWithDemo(email);
-    setLoading(false);
-    if (!res.success) {
-      setErrorMessage(res.message);
     }
   };
 
@@ -239,108 +224,15 @@ export const LoginPage = () => {
               </svg>
               {isLoading ? 'Signing in…' : 'Sign in with Google'}
             </button>
+            {/* Enforcing Domain Note */}
             <p className="text-[11px] text-center text-slate-400">
               Enforcing official{' '}
               <span className="font-mono text-kiot-maroon font-bold">@kiot.ac.in</span>{' '}
               institutional domain
             </p>
-
-            {/* Divider */}
-            <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-slate-200" />
-              <span className="flex-shrink mx-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-white px-2">
-                Rapid Persona Switcher
-              </span>
-              <div className="flex-grow border-t border-slate-200" />
-            </div>
-
-            {/* 1-Click Role Switcher for Hackathon Evaluation */}
-            <div className="space-y-1.5">
-              <p className="text-[11px] text-slate-500">
-                Select a pre-seeded role to instantly test the full-stack system:
-              </p>
-
-              <div className="grid grid-cols-1 gap-1.5">
-                {/* Student */}
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleDemoSignIn('sachin.24cse167@kiot.ac.in')}
-                  className="p-2.5 rounded-xl border border-slate-200 hover:border-kiot-maroon hover:bg-kiot-maroon/5 flex items-center justify-between text-left transition-all group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
-                      <GraduationCap className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-kiot-maroon">Sachin V (Student)</p>
-                      <p className="text-[10px] text-slate-500 font-mono">2K24CSE167 • Dept of CSE • Year 2</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-kiot-maroon group-hover:translate-x-0.5 transition-all" />
-                </button>
-
-                {/* Mentor */}
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleDemoSignIn('mentor.rajesh@kiot.ac.in')}
-                  className="p-2.5 rounded-xl border border-slate-200 hover:border-emerald-600 hover:bg-emerald-50/50 flex items-center justify-between text-left transition-all group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-800">Dr. K. Rajesh (Senior Mentor)</p>
-                      <p className="text-[10px] text-slate-500">Assigned Cohort: 5 Mentees</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all" />
-                </button>
-
-                {/* Club Leader */}
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleDemoSignIn('priya.club@kiot.ac.in')}
-                  className="p-2.5 rounded-xl border border-slate-200 hover:border-amber-600 hover:bg-amber-50/50 flex items-center justify-between text-left transition-all group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
-                      <Award className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-amber-800">Priya Dharshini S (Club Leader)</p>
-                      <p className="text-[10px] text-slate-500">President — KIOT Coding Club (KCC)</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition-all" />
-                </button>
-
-                {/* Admin */}
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleDemoSignIn('admin@kiot.ac.in')}
-                  className="p-2.5 rounded-xl border border-slate-200 hover:border-slate-800 hover:bg-slate-100 flex items-center justify-between text-left transition-all group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-900 text-kiot-gold flex items-center justify-center">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900">Dr. P. Rajendran (Developer / Admin)</p>
-                      <p className="text-[10px] text-slate-500">Full Developer CMS System Control Center</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 transition-all" />
-                </button>
-              </div>
-            </div>
           </div>
 
-          <p className="text-[10px] text-center text-slate-400 pt-2">
+          <p className="text-[10px] text-center text-slate-400 pt-4">
             Protected by KIOT Institutional Identity Gateway • All actions audited.
           </p>
         </div>
